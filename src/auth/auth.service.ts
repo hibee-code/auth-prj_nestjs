@@ -15,8 +15,7 @@ export class AuthService {
     });
 
     if (!user && password) {
-      const { password, ...rest } = user;
-      return rest;
+      return user;
     }
     return null;
   }
