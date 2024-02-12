@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from '../users/entities/user.entity';
+import { Injectable } from '@nestjs/common';
+// import { User } from '../users/entities/user.entity';
 import { DataSource, EntityManager } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { LoginUserInput } from './dto/login-user';
 import * as bcrypt from 'bcrypt';
+import { LoginResponse } from './dto/login.response';
 
 @Injectable()
 export class AuthService {
@@ -17,31 +18,41 @@ export class AuthService {
     this.dbManager = datasource.manager;
   }
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string) {
     const user = await this.userService.findOne(username);
-    const valid = await bcrypt.compare(password, user?.password);
-    if (user && valid) {
-      const { password, ...result } = user;
+    const passwordvalid = await bcrypt.compare(password, user.password);
+    if (user && passwordvalid) {
+      const { ...result } = user;
       return result;
     }
-
-    return null;
   }
-  signin(user: User) {
-    return {
-      access_Token: this.jwtService.sign({
+
+  // signin(user: User) {
+  //   return {
+  //     access_Token: this.jwtService.sign({
+  //       username: user.username,
+  //       sub: user.id,
+  //     }),
+  //     user,
+  //   };
+  // }
+
+  async signin(
+    username: string,
+    password: string,
+  ): Promise<LoginResponse | null> {
+    const user = await this.validateUser(username, password);
+    if (user) {
+      const accessToken = this.jwtService.sign({
         username: user.username,
         sub: user.id,
-      }),
-      user,
-    };
+      });
+      return { access_token: accessToken, user };
+    }
+    return null;
   }
 
   async signup(loginUserInput: LoginUserInput) {
-    const existingUser = this.userService.findOne(loginUserInput.username);
-    if (existingUser) {
-      throw new BadRequestException('Username already exists');
-    }
     const password = await bcrypt.hash(loginUserInput.password, 10);
     return this.userService.create({ ...loginUserInput, password });
   }

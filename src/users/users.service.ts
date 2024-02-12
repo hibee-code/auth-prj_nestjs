@@ -11,30 +11,31 @@ export class UsersService {
     this.dbManager = datasource.manager;
   }
   async create(payload: CreateUserInput): Promise<User> {
-    const { password } = payload;
-
-    const hash = await bcrypt.hash(password, 10);
+    const { password, username } = payload;
 
     const existingUser = await this.dbManager.findOne(User, {
-      where: { username: payload.username },
+      where: { username: username },
     });
     if (existingUser) {
       throw new NotFoundException('User already exist!!');
     }
+    const hashPassword = bcrypt.hash(password, 10);
     const newUser = this.dbManager.create(User, {
       ...payload,
-      password: hash,
+      hashPassword,
     });
-    const savedUser = await this.dbManager.save(newUser);
-    return savedUser;
+    const saveUser = this.dbManager.save(newUser);
+    return saveUser;
   }
-  findOne(username: string): Promise<User> {
-    const user = this.dbManager.findOne(User, { where: { username } });
+  async findOne(username: string): Promise<User> {
+    const user = await this.dbManager.findOne(User, {
+      where: { username: username },
+    });
     return user;
   }
 
-  findAll(): Promise<User[]> {
-    const user = this.dbManager.find(User);
+  async findAll(): Promise<User[]> {
+    const user = await this.dbManager.find(User);
     return user;
   }
 }
