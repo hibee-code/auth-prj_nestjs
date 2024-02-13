@@ -14,3 +14,20 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
 
   synchronize: true,
 };
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: `${process.env.POSTGRES_URL}?sslmode=require`,
+});
+
+pool
+  .connect()
+  .then(() => {
+    console.log('Connected to PostgreSQL successfully!');
+  })
+  .catch((err) => {
+    console.error('Error connecting to PostgreSQL:', err);
+  });
+
+export default pool;
