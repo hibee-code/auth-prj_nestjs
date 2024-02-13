@@ -16,26 +16,18 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
 };
 
 import { Pool } from 'pg';
-
-// Configure the pool with optimal settings
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: {
-    rejectUnauthorized: false, // Disables SSL certificate validation, adjust as necessary for your environment
+    rejectUnauthorized: false,
   },
-  // Connection pool options
-  // max: 20, // Maximum number of clients in the pool
-  // idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  // connectionTimeoutMillis: 2000, // Timeout for connecting a new client
 });
 
-// Log errors related to the pool
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1); // Exit the process if an error occurs to prevent the application from hanging
+  process.exit(-1);
 });
 
-// Connect to the pool and log success or error
 pool
   .connect()
   .then(() => {
